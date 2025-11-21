@@ -1,5 +1,5 @@
 from datetime import datetime
-from queue import Queue
+import queue
 from threading import Thread
 from typing import Union
 import cv2
@@ -15,7 +15,7 @@ class VideoReader:
 
         self.prj_logger = prj_logger
         self.capture: Union[cv2.VideoCapture, None] = None
-        self.frames_queue: Queue = frames_queue
+        self.frames_queue: queue.Queue = frames_queue
         self.rtsp_mode = False
         self.stopped = True
 
@@ -43,13 +43,14 @@ class VideoReader:
     def _capture_frames(self, frames_source):
         frames_missed = 0
         total_frames = 0
+        block_stream = not self.rtsp_mode
         while not self.stopped:
             try:
                 frame = None
                 captured = False
 
                 captured, frame = self.capture.read()
-
+                    
                 if captured and frame is not None:
                     total_frames += 1
 
@@ -59,7 +60,19 @@ class VideoReader:
                         frame=frame,
                         timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
                     )
-                    self.frames_queue.put(frame_data, block=False)
+                    while True:
+                        try:
+                            self.frames_queue.put(frame_data, block=block_stream, timeout=1)
+                            break
+                        except queue.Full:
+                            # skip frame if it is rtsp
+                            if self.rtsp_mode:
+                                frames_missed += 1
+                                break
+                            else:
+                                # keep all frames if it is video
+                                time.sleep(0.01)
+                        
                 elif self.rtsp_mode:
                     frames_missed += 1
                 else:
