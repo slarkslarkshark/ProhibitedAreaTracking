@@ -1,0 +1,3 @@
+video_source: ./videos/test.mp4
+LOG_PATH: ./logs
+LOG_FILENAME: logs.log

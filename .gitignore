@@ -1,0 +1,14 @@
+/notebooks/
+/videos/
+
+.venv/
+
+__pycache__/
+camera/__pycache__/
+help_tools/__pycache__/
+
+logs/*
+!logs/.gitkeep
+
+models/
+logs/

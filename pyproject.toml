@@ -1,0 +1,21 @@
+[project]
+name = "prohibited-area-tracking"
+version = "0.1.0"
+description = "The system for tracking entry into a prohibited area"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "loguru>=0.7.3",
+    "opencv-python>=4.12.0.88",
+    "torch==2.6.0",
+    "torchvision==0.21.0",
+    "torchaudio==2.6.0",
+    "ultralytics==8.3.140",
+    "boxmot>=15.0.10",
+]
+
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+]

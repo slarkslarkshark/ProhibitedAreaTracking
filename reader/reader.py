@@ -1,0 +1,72 @@
+from datetime import datetime
+from queue import Queue
+from threading import Thread
+from typing import Union
+import cv2
+from pathlib import Path
+from help_tools.data_containers import FrameData
+import time
+
+
+class VideoReader:
+    """Class for taking frames from Video or RTSP."""
+
+    def __init__(self, frames_queue, prj_logger) -> None:
+
+        self.prj_logger = prj_logger
+        self.capture: Union[cv2.VideoCapture, None] = None
+        self.frames_queue: Queue = frames_queue
+        self.rtsp_mode = False
+        self.stopped = True
+
+    def start_capture(self, frames_source: Union[int, str, Path]) -> None:
+        self.capture = cv2.VideoCapture(frames_source)
+        self.rtsp_mode = "rtsp://" in str(frames_source)
+        if not self.capture.isOpened():
+            self.prj_logger.error(f"Can't connect to {frames_source}.")
+            raise ValueError("Can't start frame capture.")
+
+        self.stopped = False
+        start_thread = Thread(
+            target=self._capture_frames, args=(frames_source,), daemon=True
+        )
+        start_thread.start()
+        self.prj_logger.info(f"Connected to source {frames_source}.")
+
+    def stop_capture(self) -> bool:
+        self.stopped = True
+        time.sleep(0.05)
+        if self.capture:
+            self.capture.release()
+        return self.stopped
+
+    def _capture_frames(self, frames_source):
+        frames_missed = 0
+        total_frames = 0
+        while not self.stopped:
+            try:
+                frame = None
+                captured = False
+
+                captured, frame = self.capture.read()
+
+                if captured and frame is not None:
+                    total_frames += 1
+
+                    frame_data = FrameData(
+                        source=frames_source,
+                        frame_exist=True,
+                        frame=frame,
+                        timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
+                    )
+                    self.frames_queue.put(frame_data, block=False)
+                elif self.rtsp_mode:
+                    frames_missed += 1
+                else:
+                    self.stop_capture()
+
+            except Exception as error:
+                self.prj_logger.error(str(error))
+        self.prj_logger.info(
+            f"Reading frames is finished. Total frames {total_frames}. Frames missed {frames_missed}"
+        )
