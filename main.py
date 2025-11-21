@@ -1,5 +1,5 @@
-from reader import VideoReader
-from tracking import Tracker
+from frames_processing import VideoReader, WindowDrawer
+from tracking import Tracker, Intersector
 import queue
 from pathlib import Path
 from help_tools.logger_worker import LoggerWorker
@@ -7,17 +7,6 @@ from help_tools.data_containers import FrameData
 import yaml
 import time
 import cv2
-from ast import literal_eval
-
-
-def _draw_boxes(frame, boxes, cfg):
-    color = literal_eval(cfg["BOXES_COLOR"])
-    thickness = cfg["BOXES_THICKNESS"]
-    for box in boxes:
-        x1, y1, x2, y2 = map(int, box)
-        cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
-
-    return frame
 
 
 def main():
@@ -29,13 +18,18 @@ def main():
     camera = VideoReader(frames_queue=frames_queue, prj_logger=prj_logger)
     tracker = Tracker(prj_logger, cfg)
 
+    prohib_areas = camera.get_prohib_areas(video_source, cfg)
+    intersector = Intersector(prohib_areas)
+    drawer = WindowDrawer(prj_logger, cfg, prohib_areas)
+
     camera.start_capture(video_source)
     while True:
         try:
             frame_data: FrameData = frames_queue.get(timeout=0.1)
             boxes = tracker.detect(frame_data.frame)
-            drawed_frame = _draw_boxes(frame_data.frame, boxes, cfg)
-            cv2.imshow("Video", drawed_frame)
+            intersection = intersector.check_intersection(boxes)
+            drawn_frame = drawer.draw_frame(frame_data, boxes, intersection)
+            cv2.imshow("Video", drawn_frame)
         except queue.Empty:
             time.sleep(0.01)
 

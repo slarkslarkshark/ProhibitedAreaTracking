@@ -3,8 +3,8 @@ mode: predict
 model: models/yolo11m.pt # (str, optional) path to model file
 
 # Predict settings
-conf: 0.25
-iou: 0.7
+conf: 0.05
+iou: 0.45
 imgsz: 640
 device: cuda:0
 batch: 1

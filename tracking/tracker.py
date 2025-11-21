@@ -6,7 +6,6 @@ class Tracker:
 
     def __init__(self, prj_logger, cfg):
         self.prj_logger = prj_logger
-
         try:
             with open(cfg["DETECTOR_CFG_PATH"], "r", encoding="utf-8") as f:
                 self.det_cfg = yaml.safe_load(f)
@@ -18,5 +17,5 @@ class Tracker:
 
     def detect(self, frame):
         boxes = self.detector(source=frame, **self.det_cfg)[0].boxes
-        return boxes.xyxy
+        return boxes.xyxy.cpu().numpy()
             

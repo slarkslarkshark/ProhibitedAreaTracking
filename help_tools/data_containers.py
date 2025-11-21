@@ -1,4 +1,5 @@
 from dataclasses import dataclass, asdict
+from datetime import datetime
 import numpy as np
 from pathlib import Path
 from typing import Union
@@ -11,7 +12,7 @@ class FrameData:
     source: Union[str, Path]
     frame_exist: bool
     frame: np.ndarray
-    timestamp: str
+    timestamp: datetime
 
     def get_data_as_dict(self):
         return asdict(self)

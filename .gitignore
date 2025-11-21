@@ -4,7 +4,7 @@
 .venv/
 
 __pycache__/
-camera/__pycache__/
+frames_processing/__pycache__/
 help_tools/__pycache__/
 
 logs/*

@@ -5,6 +5,7 @@ from typing import Union
 import cv2
 from pathlib import Path
 from help_tools.data_containers import FrameData
+from frames_processing.polygon_annotator import PolygonAnnotator
 import time
 
 
@@ -18,6 +19,30 @@ class VideoReader:
         self.frames_queue: queue.Queue = frames_queue
         self.rtsp_mode = False
         self.stopped = True
+
+    def _get_one_frame(self, frame_source: Union[int, str, Path]):
+        capture = cv2.VideoCapture(frame_source)
+        self.prj_logger.info(f"Connected to source {frame_source}.")
+        captured, frame = capture.read()
+        capture.release()
+        self.prj_logger.info(f"Released source {frame_source}.")
+
+        frame_data = FrameData(
+            source=frame_source,
+            frame_exist=captured,
+            frame=frame,
+            timestamp=datetime.now(),
+        )
+        return frame_data
+
+    def get_prohib_areas(self, video_source, cfg):
+        prohib_areas = []
+
+        frame_data: FrameData = self._get_one_frame(video_source)
+        if frame_data.frame_exist:
+            annotator = PolygonAnnotator(frame_data.frame, cfg["WINDOW_NAME"])
+            prohib_areas = annotator.run(close_window=False)
+        return prohib_areas
 
     def start_capture(self, frames_source: Union[int, str, Path]) -> None:
         self.capture = cv2.VideoCapture(frames_source)
@@ -33,11 +58,12 @@ class VideoReader:
         start_thread.start()
         self.prj_logger.info(f"Connected to source {frames_source}.")
 
-    def stop_capture(self) -> bool:
+    def stop_capture(self, frames_source) -> bool:
         self.stopped = True
         time.sleep(0.05)
         if self.capture:
             self.capture.release()
+            self.prj_logger.info(f"Released source {frames_source}.")
         return self.stopped
 
     def _capture_frames(self, frames_source):
@@ -50,7 +76,7 @@ class VideoReader:
                 captured = False
 
                 captured, frame = self.capture.read()
-                    
+
                 if captured and frame is not None:
                     total_frames += 1
 
@@ -58,11 +84,13 @@ class VideoReader:
                         source=frames_source,
                         frame_exist=True,
                         frame=frame,
-                        timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
+                        timestamp=datetime.now(),
                     )
                     while True:
                         try:
-                            self.frames_queue.put(frame_data, block=block_stream, timeout=1)
+                            self.frames_queue.put(
+                                frame_data, block=block_stream, timeout=1
+                            )
                             break
                         except queue.Full:
                             # skip frame if it is rtsp
@@ -72,11 +100,11 @@ class VideoReader:
                             else:
                                 # keep all frames if it is video
                                 time.sleep(0.01)
-                        
+
                 elif self.rtsp_mode:
                     frames_missed += 1
                 else:
-                    self.stop_capture()
+                    self.stop_capture(frames_source)
 
             except Exception as error:
                 self.prj_logger.error(str(error))

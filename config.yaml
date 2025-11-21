@@ -3,5 +3,7 @@ LOG_PATH: ./logs
 LOG_FILENAME: logs.log
 QUEUE_MAX_SIZE: 300
 DETECTOR_CFG_PATH: tracking/cfg_inference.yaml
-BOXES_COLOR: (0, 0, 255)
+WINDOW_NAME: Video
+BOXES_COLOR: (255, 0, 0) # BGR
 BOXES_THICKNESS: 2
+ALARM_TIME: 3 # sec
