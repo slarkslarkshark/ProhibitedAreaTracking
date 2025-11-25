@@ -1,0 +1,12 @@
+reid_weights: "models/osnet_x0_25_msmt17.pt"
+with_reid: true 
+device: 0                           
+half: false                        
+
+max_age: 60 
+min_hits: 2           
+iou_threshold: 0.3 
+det_thresh: 0.0 
+min_box_area: 10 
+aspect_ratio_thresh: 3.5 
+appearance_thresh: 0.65             

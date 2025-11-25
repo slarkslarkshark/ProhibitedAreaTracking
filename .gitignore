@@ -10,5 +10,3 @@ help_tools/__pycache__/
 logs/*
 !logs/.gitkeep
 
-models/
-logs/

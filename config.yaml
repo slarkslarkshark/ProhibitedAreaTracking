@@ -2,7 +2,8 @@ video_source: ./videos/test.mp4
 LOG_PATH: ./logs
 LOG_FILENAME: logs.log
 QUEUE_MAX_SIZE: 300
-DETECTOR_CFG_PATH: tracking/cfg_inference.yaml
+DETECTOR_CFG_PATH: tracking/det_cfg.yaml
+TRACKER_CFG_PATH: tracking/track_cfg.yaml
 WINDOW_NAME: Video
 BOXES_COLOR: (255, 0, 0) # BGR
 BOXES_THICKNESS: 2

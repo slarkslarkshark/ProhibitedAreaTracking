@@ -26,9 +26,13 @@ def main():
     while True:
         try:
             frame_data: FrameData = frames_queue.get(timeout=0.1)
-            boxes = tracker.detect(frame_data.frame)
+            boxes, metadata = tracker.track(frame_data.frame)
+            if boxes is None:
+                boxes = []
             intersection = intersector.check_intersection(boxes)
-            drawn_frame = drawer.draw_frame(frame_data, boxes, intersection)
+            drawn_frame = drawer.draw_frame(
+                frame_data, boxes, intersection, metadata=metadata
+            )
             cv2.imshow("Video", drawn_frame)
         except queue.Empty:
             time.sleep(0.01)

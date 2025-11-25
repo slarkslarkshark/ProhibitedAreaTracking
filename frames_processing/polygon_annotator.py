@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+
 class PolygonAnnotator:
     def __init__(self, image, window_name="Video"):
         self.image = image.copy()
