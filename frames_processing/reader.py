@@ -7,6 +7,7 @@ from pathlib import Path
 from help_tools.data_containers import FrameData
 from frames_processing.polygon_annotator import PolygonAnnotator
 import time
+import json
 
 
 class VideoReader:
@@ -35,13 +36,26 @@ class VideoReader:
         )
         return frame_data
 
-    def get_prohib_areas(self, video_source, cfg):
+    def _save_prohib_areas_to_json(self, prohib_areas, save_path):
+        if save_path is None:
+            save_path = "./proh_areas/restricted_zones.json"
+
+        json_data = {}
+        for i, area in enumerate(prohib_areas, 1):
+            json_data[str(i)] = area.tolist()
+        with open(save_path, "w", encoding="utf-8") as f:
+            json.dump(json_data, f)
+        self.prj_logger.info(f"Запрещенные зоны сохранены в: {save_path}")
+
+    def get_prohib_areas(self, video_source, cfg, save_json=True, save_path=None):
         prohib_areas = []
 
         frame_data: FrameData = self._get_one_frame(video_source)
         if frame_data.frame_exist:
             annotator = PolygonAnnotator(frame_data.frame, cfg["WINDOW_NAME"])
             prohib_areas = annotator.run(close_window=False)
+        if save_json:
+            self._save_prohib_areas_to_json(prohib_areas, save_path)
         return prohib_areas
 
     def start_capture(self, frames_source: Union[int, str, Path]) -> None:

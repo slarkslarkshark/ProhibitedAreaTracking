@@ -10,3 +10,6 @@ help_tools/__pycache__/
 logs/*
 !logs/.gitkeep
 
+proh_areas/*
+!proh_areas/.gitkeep
+

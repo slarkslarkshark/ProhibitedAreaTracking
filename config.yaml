@@ -1,4 +1,5 @@
-video_source: ./videos/test.mp4
+VIDEO_SOURCE: ./videos/test.mp4
+PROH_AREAS: 
 LOG_PATH: ./logs
 LOG_FILENAME: logs.log
 QUEUE_MAX_SIZE: 300
